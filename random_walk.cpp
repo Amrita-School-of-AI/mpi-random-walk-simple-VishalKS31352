@@ -88,6 +88,7 @@ void controller_process()
         int rank = status.MPI_SOURCE;
         results[rank] = steps;
         finished++;
+
     }
 
     // Print results in order of rank
@@ -96,7 +97,7 @@ void controller_process()
         std::cout << "Rank " << rank << ": Walker finished in " << results[rank] << " steps." << std::endl;
     }
 
-    std::cout << "Controller: All " << num_walkers << " walkers have finished." << std::endl;
+    std::cout << "Controller: All " << num_walkers << " walkers have finished ." << std::endl;
 
     delete[] results;
 }
