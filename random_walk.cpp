@@ -54,15 +54,17 @@ void walker_process()
     for (steps_taken = 0; steps_taken < max_steps; ++steps_taken)
     {
         int step = (rand() % 2 == 0) ? -1 : +1;
-        position += step;
 
-        if (position < -domain_size || position > domain_size)
+        // Check if next step would go out of bounds
+        if (position + step < -domain_size || position + step > domain_size)
         {
-            // Send steps taken (plus 1 because steps_taken is zero-indexed) to controller
+            // Send steps taken (plus 1) to controller and return
             int result = steps_taken + 1;
             MPI_Send(&result, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
             return;
         }
+
+        position += step;
     }
 
     // If max_steps reached without going out of bounds
@@ -72,13 +74,13 @@ void walker_process()
 void controller_process()
 {
     int num_walkers = world_size - 1;
-    int *results = new int[world_size]; // To hold results for each rank (only walkers)
+    int *results = new int[world_size]; // Index 0 unused for walkers
     for (int i = 0; i < world_size; ++i) results[i] = -1; // Initialize
 
     int finished = 0;
     MPI_Status status;
 
-    // Receive from each walker
+    // Receive results from each walker
     while (finished < num_walkers)
     {
         int steps;
@@ -88,7 +90,7 @@ void controller_process()
         finished++;
     }
 
-    // Now print in rank order
+    // Print results in order of rank
     for (int rank = 1; rank < world_size; ++rank)
     {
         std::cout << "Rank " << rank << ": Walker finished in " << results[rank] << " steps." << std::endl;
